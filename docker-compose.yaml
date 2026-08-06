@@ -1,0 +1,44 @@
+services:
+  catalog-service:
+    build:
+      context: ./catalog-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-catalog-db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      postgres-catalog-db:
+        condition: service_healthy
+    networks:
+      - micro-ticket-network
+
+  postgres-catalog-db:
+    image: postgres:17-alpine
+    container_name: postgres-catalog-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - catalogms_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - micro-ticket-network
+
+volumes:
+  catalogms_postgres_data:
+
+networks:
+  micro-ticket-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: "microticket-ecommerce"
