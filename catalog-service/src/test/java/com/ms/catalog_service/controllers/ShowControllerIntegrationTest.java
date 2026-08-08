@@ -13,7 +13,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,10 +46,47 @@ class ShowControllerIntegrationTest {
 
         mockMvc.perform(get("/api/v1/show/all")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpectAll(result ->
+                .andExpectAll(
                         status().isOk(),
                         jsonPath("$.length()").value(1),
                         jsonPath("$[0].name").value(persisted.getName())
+                );
+    }
+
+    @Test
+    @DisplayName("Should get show by id")
+    void shouldGetShowById() throws Exception {
+        Show persisted = showRepository.save(new Show(
+                null,
+                "Peça de Teatro Integration Test",
+                "Show usado só para validar o fluxo de listagem",
+                75.50,
+                100,
+                100
+        ));
+
+        mockMvc.perform(get("/api/v1/show/" + persisted.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.name").value(persisted.getName())
+                );
+    }
+
+    @Test
+    @DisplayName("Should return 404 when show does not exist")
+    void shouldReturn404WhenShowNotFound() throws Exception {
+        UUID invalidShowId = UUID.randomUUID();
+
+        mockMvc.perform(get("/api/v1/show/" + invalidShowId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(
+                        status().isNotFound(),
+                        jsonPath("$.status").value(404),
+                        jsonPath("$.message").value("Show not found!")
                 );
     }
 }
