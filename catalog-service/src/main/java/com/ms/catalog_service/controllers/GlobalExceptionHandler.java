@@ -1,14 +1,17 @@
 package com.ms.catalog_service.controllers;
 
 import com.ms.catalog_service.dtos.ApiError;
+import com.ms.catalog_service.exceptions.InsufficientStockException;
 import com.ms.catalog_service.exceptions.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -19,6 +22,34 @@ public class GlobalExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 "Resource Not Found",
                 ex.getMessage(),
+                request.getDescription(false),
+                Instant.now()
+        );
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleInsufficientStock(InsufficientStockException ex, WebRequest request) {
+        return new ApiError(
+                HttpStatus.CONFLICT.value(),
+                "Not Enough Stock",
+                ex.getMessage(),
+                request.getDescription(false),
+                Instant.now()
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleValidation(MethodArgumentNotValidException ex, WebRequest request) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
+        return new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Error",
+                message,
                 request.getDescription(false),
                 Instant.now()
         );

@@ -1,14 +1,13 @@
 package com.ms.catalog_service.controllers;
 
+import com.ms.catalog_service.dtos.ShowReserveRequestDto;
 import com.ms.catalog_service.dtos.ShowResponseDto;
 import com.ms.catalog_service.services.ShowService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,5 +27,11 @@ public class ShowController {
     @GetMapping("/{id}")
     public ResponseEntity<ShowResponseDto> getShow(@PathVariable("id") UUID showId) {
         return ResponseEntity.ok(showService.getShow(showId));
+    }
+
+    @PostMapping("/{id}/reserve")
+    public ResponseEntity<ShowResponseDto> reserveTickets(@PathVariable("id") UUID showId, @RequestBody @Valid ShowReserveRequestDto showReserveRequestDto) {
+        var result = showService.reserveShowTickets(showId, showReserveRequestDto.quantity());
+        return ResponseEntity.ok(result);
     }
 }
