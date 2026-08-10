@@ -5,13 +5,31 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-catalog-db:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-catalog-db:5432/${POSTGRES_CATALOG_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_CATALOG_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_CATALOG_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:
       postgres-catalog-db:
+        condition: service_healthy
+    networks:
+      - micro-ticket-network
+
+  order-service:
+    build:
+      context: ./order-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order-db:5432/${POSTGRES_ORDER_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_ORDER_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD}
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres-order-db:
+        condition: service_healthy
+      catalog-service:
         condition: service_healthy
     networks:
       - micro-ticket-network
@@ -21,11 +39,11 @@ services:
     container_name: postgres-catalog-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_CATALOG_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_CATALOG_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_CATALOG_DB}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_CATALOG_PORT}:5432"
     volumes:
       - catalogms_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -37,8 +55,30 @@ services:
     networks:
       - micro-ticket-network
 
+  postgres-order-db:
+    image: postgres:17-alpine
+    container_name: postgres-order-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_ORDER_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_ORDER_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_ORDER_DB}
+    ports:
+      - "${POSTGRES_ORDER_PORT}:5432"
+    volumes:
+      - orderms_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - micro-ticket-network
+
 volumes:
   catalogms_postgres_data:
+  orderms_postgres_data:
 
 networks:
   micro-ticket-network:
