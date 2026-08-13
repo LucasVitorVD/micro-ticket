@@ -3,6 +3,7 @@ package com.ms.order_service.controllers;
 import com.ms.order_service.dtos.ApiError;
 import com.ms.order_service.exceptions.ResourceNotFoundException;
 import com.ms.order_service.exceptions.TicketsUnavailableException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,6 +14,7 @@ import org.springframework.web.context.request.WebRequest;
 import java.time.Instant;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(TicketsUnavailableException.class)
@@ -58,6 +60,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handleAll(Exception ex, WebRequest request) {
+        log.error("Unhandled exception processing request {}", request.getDescription(false), ex);
+
         return new ApiError(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal Server Error",

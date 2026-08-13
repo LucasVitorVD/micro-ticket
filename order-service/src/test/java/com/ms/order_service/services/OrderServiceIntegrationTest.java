@@ -1,7 +1,6 @@
 package com.ms.order_service.services;
 
 import com.ms.order_service.TestcontainersConfiguration;
-import com.ms.order_service.dtos.ShowReserveRequestDto;
 import com.ms.order_service.exceptions.ResourceNotFoundException;
 import com.ms.order_service.exceptions.TicketsUnavailableException;
 import org.junit.jupiter.api.DisplayName;
@@ -55,11 +54,11 @@ class OrderServiceIntegrationTest {
                 }
             """.formatted(showId);
 
-            mockServer.expect(requestTo("http://catalog-service/api/v1/show/" + showId + "/reserve"))
+            mockServer.expect(requestTo("http://catalog-service:8080/api/v1/show/" + showId + "/reserve"))
                     .andExpect(content().json("{\"quantity\": 2}"))
                     .andRespond(withSuccess(mockJsonResponse, MediaType.APPLICATION_JSON));
 
-            orderService.createOrder(showId, new ShowReserveRequestDto(2));
+            orderService.createOrder(showId, 2);
 
             mockServer.verify();
         }
@@ -75,14 +74,14 @@ class OrderServiceIntegrationTest {
                 }
             """;
 
-            mockServer.expect(requestTo("http://catalog-service/api/v1/show/" + showId + "/reserve"))
+            mockServer.expect(requestTo("http://catalog-service:8080/api/v1/show/" + showId + "/reserve"))
                     .andExpect(content().json("{\"quantity\": 2}"))
                     .andRespond(withStatus(HttpStatus.CONFLICT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .body(mockErrorResponse));
 
             assertThrows(TicketsUnavailableException.class,
-                    () -> orderService.createOrder(showId, new ShowReserveRequestDto(2)));
+                    () -> orderService.createOrder(showId, 2));
 
             mockServer.verify();
         }
@@ -98,14 +97,14 @@ class OrderServiceIntegrationTest {
                 }
             """;
 
-            mockServer.expect(requestTo("http://catalog-service/api/v1/show/" + showId + "/reserve"))
+            mockServer.expect(requestTo("http://catalog-service:8080/api/v1/show/" + showId + "/reserve"))
                     .andExpect(content().json("{\"quantity\": 2}"))
                     .andRespond(withStatus(HttpStatus.NOT_FOUND)
                             .contentType(MediaType.APPLICATION_JSON)
                             .body(mockErrorResponse));
 
             assertThrows(ResourceNotFoundException.class,
-                    () -> orderService.createOrder(showId, new ShowReserveRequestDto(2)));
+                    () -> orderService.createOrder(showId, 2));
 
             mockServer.verify();
         }

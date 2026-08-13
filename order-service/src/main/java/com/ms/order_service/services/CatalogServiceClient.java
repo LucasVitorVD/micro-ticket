@@ -15,13 +15,13 @@ public class CatalogServiceClient {
     private final RestClient restClient;
 
     public CatalogServiceClient(RestClient.Builder builder) {
-        this.restClient = builder.baseUrl("http://catalog-service").build();
+        this.restClient = builder.baseUrl("http://catalog-service:8080").build();
     }
 
     public ShowResponseDto reserveShowTickets(UUID showId, int quantity) {
         return restClient.post()
                 .uri("/api/v1/show/{showId}/reserve", showId)
-                .body(new ShowReserveRequestDto(quantity))
+                .body(new ShowReserveRequestDto(showId, quantity))
                 .retrieve()
                 .onStatus(status -> status.equals(HttpStatus.CONFLICT), (request, response) -> {
                     throw new TicketsUnavailableException("There aren't enough tickets available for show " + showId);
