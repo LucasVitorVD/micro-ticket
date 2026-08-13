@@ -24,12 +24,18 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order-db:5432/${POSTGRES_ORDER_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_ORDER_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     ports:
       - "8081:8080"
     depends_on:
       postgres-order-db:
         condition: service_healthy
       catalog-service:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - micro-ticket-network
@@ -76,9 +82,42 @@ services:
     networks:
       - micro-ticket-network
 
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - micro-ticket-network
+
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "9999:8080"
+    networks:
+      - micro-ticket-network
+
 volumes:
   catalogms_postgres_data:
   orderms_postgres_data:
+  rabbitmq_data:
 
 networks:
   micro-ticket-network:
