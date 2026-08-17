@@ -4,34 +4,26 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
-import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
-import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@EnableConfigurationProperties(MessagingProperties.class)
 public class RabbitMQConfig {
-    public static final String QUEUE_NAME = "notificationQueue";
-    public static final String EXCHANGE_NAME = "orderExchange";
-    public static final String ROUTING_KEY = "order.routing.#";
 
     @Bean
-    public Queue queue() {
-        return new Queue(QUEUE_NAME, true);
+    public Queue queue(MessagingProperties properties) {
+        return new Queue(properties.queueName(), true);
     }
 
     @Bean
-    public TopicExchange exchange() {
-        return new TopicExchange(EXCHANGE_NAME);
+    public TopicExchange exchange(MessagingProperties properties) {
+        return new TopicExchange(properties.exchangeName());
     }
 
     @Bean
-    public Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY);
-    }
-
-    @Bean
-    public MessageConverter jsonMessageConverter() {
-        return new JacksonJsonMessageConverter();
+    public Binding binding(Queue queue, TopicExchange exchange, MessagingProperties properties) {
+        return BindingBuilder.bind(queue).to(exchange).with(properties.bindingRoutingKey());
     }
 }

@@ -1,6 +1,5 @@
 package com.ms.notification_service.consumers;
 
-import com.ms.notification_service.config.RabbitMQConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -9,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MessageConsumer {
 
-    @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
+    @RabbitListener(queues = "${app.messaging.queue-name}")
     public void receiveMessage(String message) {
         log.info("Received message from queue: {}", message);
     }

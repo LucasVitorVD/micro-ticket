@@ -40,11 +40,34 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      APP_CATALOG_SERVICE_BASE_URL: ${CATALOG_SERVICE_URL}
+      APP_MESSAGING_EXCHANGE_NAME: ${RABBITMQ_EXCHANGE_NAME}
+      APP_MESSAGING_QUEUE_NAME: ${RABBITMQ_QUEUE_NAME}
+      APP_MESSAGING_BINDING_ROUTING_KEY: ${RABBITMQ_BINDING_ROUTING_KEY}
+      APP_MESSAGING_ORDER_CREATED_ROUTING_KEY: ${RABBITMQ_ORDER_CREATED_ROUTING_KEY}
     depends_on:
       postgres-order-db:
         condition: service_healthy
       catalog-service:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - micro-ticket-network
+
+  notification-service:
+    build:
+      context: ./notification-service
+    restart: unless-stopped
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      APP_MESSAGING_EXCHANGE_NAME: ${RABBITMQ_EXCHANGE_NAME}
+      APP_MESSAGING_QUEUE_NAME: ${RABBITMQ_QUEUE_NAME}
+      APP_MESSAGING_BINDING_ROUTING_KEY: ${RABBITMQ_BINDING_ROUTING_KEY}
+    depends_on:
       rabbitmq:
         condition: service_healthy
     networks:
