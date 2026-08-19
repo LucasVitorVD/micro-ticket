@@ -1,0 +1,3 @@
+ALTER TABLE tb_order ALTER COLUMN status TYPE VARCHAR(20) USING status::text;
+ALTER TABLE tb_order ALTER COLUMN status SET DEFAULT 'PENDING';
+DROP TYPE order_status;

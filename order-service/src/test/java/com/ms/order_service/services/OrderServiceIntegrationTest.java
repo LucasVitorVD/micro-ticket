@@ -58,7 +58,7 @@ class OrderServiceIntegrationTest {
                     .andExpect(content().json("{\"quantity\": 2}"))
                     .andRespond(withSuccess(mockJsonResponse, MediaType.APPLICATION_JSON));
 
-            orderService.createOrder(showId, 2);
+            orderService.createOrder(showId, 2, "auth0|test-user", "test@example.com");
 
             mockServer.verify();
         }
@@ -81,7 +81,7 @@ class OrderServiceIntegrationTest {
                             .body(mockErrorResponse));
 
             assertThrows(TicketsUnavailableException.class,
-                    () -> orderService.createOrder(showId, 2));
+                    () -> orderService.createOrder(showId, 2, "auth0|test-user", "test@example.com"));
 
             mockServer.verify();
         }
@@ -104,7 +104,7 @@ class OrderServiceIntegrationTest {
                             .body(mockErrorResponse));
 
             assertThrows(ResourceNotFoundException.class,
-                    () -> orderService.createOrder(showId, 2));
+                    () -> orderService.createOrder(showId, 2, "auth0|test-user", "test@example.com"));
 
             mockServer.verify();
         }

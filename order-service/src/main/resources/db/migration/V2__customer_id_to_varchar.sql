@@ -1,0 +1,1 @@
+ALTER TABLE tb_order ALTER COLUMN customer_id TYPE VARCHAR(255);

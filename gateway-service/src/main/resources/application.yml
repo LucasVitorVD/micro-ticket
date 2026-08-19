@@ -1,6 +1,16 @@
+app:
+  cors:
+    allowed-origins: http://localhost:3000
+
 spring:
   application:
     name: gateway-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-x76mb7fc03140zha.us.auth0.com/
+          audiences: https://api.microticket.com
   cloud:
     gateway:
       server:
